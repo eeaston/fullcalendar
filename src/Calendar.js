@@ -1,6 +1,6 @@
 
 
-function Calendar(element, options, eventSources, resourceSources) {
+function Calendar(element, options, eventSources, resourceSources, availSources) {
 	var t = this;
 
 
@@ -37,8 +37,13 @@ function Calendar(element, options, eventSources, resourceSources) {
 	var fetchEvents = t.fetchEvents;
 
 	// fetch resources
-	ResourceManager.call(t, options);
+	ResourceManager.call(t, options, resourceSources);
 	var fetchResources = t.fetchResources;
+	
+	// Availability events
+	AvailabilityManager.call(t, options, availSources);
+	var isAvailEvent = t.isAvailEvent;
+	//var fetchAvailability = t.fetchAvailability;
 
 	// locals
 	var _element = element[0];
@@ -55,6 +60,7 @@ function Calendar(element, options, eventSources, resourceSources) {
 	var ignoreWindowResize = 0;
 	var date = new Date();
 	var events = [];
+	var availEvents = [];
 	var _dragElement;
 
 
@@ -356,7 +362,17 @@ function Calendar(element, options, eventSources, resourceSources) {
 
 	// called when event data arrives
 	function reportEvents(_events) {
-		events = _events;
+		events = [];
+		availEvents = [];
+		// Split out events into availability events and normal ones
+		for (var i=0; i<_events.length; i++) {
+			if (isAvailEvent(_events[i])) {
+				availEvents.push(_events[i]);
+			}
+			else {
+				events.push(_events[i]);
+			}
+		}
 		rerenderEvents();
 	}
 
@@ -373,6 +389,15 @@ function Calendar(element, options, eventSources, resourceSources) {
 		if (elementVisible()) {
 			currentView.clearEvents();
 			currentView.renderEvents(events, modifiedEventID);
+			
+			// availability events
+			if (currentView.clearAvailEvents) {
+				currentView.clearAvailEvents();
+			}
+			if (currentView.renderAvailEvents) {
+				currentView.renderAvailEvents(availEvents);
+			}
+			
 			currentView.eventsDirty = false;
 		}
 	}

@@ -66,6 +66,7 @@ function AgendaView(element, calendar, viewName) {
 	OverlayManager.call(t);
 	SelectionManager.call(t);
 	AgendaEventRenderer.call(t);
+	AgendaAvailRenderer.call(t);
 	var opt = t.opt;
 	var trigger = t.trigger;
 	var clearEvents = t.clearEvents;
