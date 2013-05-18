@@ -13,10 +13,17 @@ function OverlayManager() {
 	var unusedOverlays = [];
 	
 	
-	function renderOverlay(rect, parent) {
+	function renderOverlay(rect, parent, isAvail) {
 		var e = unusedOverlays.shift();
 		if (!e) {
-			e = $("<div class='fc-cell-overlay' style='position:absolute;z-index:3'/>");
+			if (isAvail) {
+				// Availability overlays
+				e = $("<div class='fc-cell-overlay-avail' style='position:absolute;z-index:3'/>");
+			}
+			else {
+				// Selection overlays
+				e = $("<div class='fc-cell-overlay' style='position:absolute;z-index:3'/>");
+			}
 		}
 		if (e[0].parentNode != parent[0]) {
 			e.appendTo(parent);

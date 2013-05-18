@@ -55,6 +55,7 @@ function AgendaView(element, calendar, viewName) {
 	t.defaultSelectionEnd = defaultSelectionEnd;
 	t.renderDayOverlay = renderDayOverlay;
 	t.renderSelection = renderSelection;
+	t.renderAvailability = renderAvailability;
 	t.clearSelection = clearSelection;
 	t.reportDayClick = reportDayClick; // selection mousedown hack
 	t.dragStart = dragStart;
@@ -499,7 +500,8 @@ function AgendaView(element, calendar, viewName) {
 	-----------------------------------------------------*/
 	
 
-	function renderDayOverlay(startDate, endDate, refreshCoordinateGrid) { // endDate is exclusive
+	function renderDayOverlay(startDate, endDate, refreshCoordinateGrid, isAvail) { 
+		// endDate is exclusive
 		if (refreshCoordinateGrid) {
 			coordinateGrid.build();
 		}
@@ -516,19 +518,19 @@ function AgendaView(element, calendar, viewName) {
 		endCol = Math.min(colCnt, endCol);
 		if (startCol < endCol) {
 			dayBind(
-				renderCellOverlay(0, startCol, 0, endCol-1)
+				renderCellOverlay(0, startCol, 0, endCol-1, isAvail)
 			);
 		}
 	}
 	
 	
-	function renderCellOverlay(row0, col0, row1, col1) { // only for all-day?
+	function renderCellOverlay(row0, col0, row1, col1, isAvail) { // only for all-day?
 		var rect = coordinateGrid.rect(row0, col0, row1, col1, slotLayer);
-		return renderOverlay(rect, slotLayer);
+		return renderOverlay(rect, slotLayer, isAvail);
 	}
 	
 
-	function renderSlotOverlay(overlayStart, overlayEnd) {
+	function renderSlotOverlay(overlayStart, overlayEnd, isAvail) {
 		var dayStart = cloneDate(t.visStart);
 		var dayEnd = addDays(cloneDate(dayStart), 1);
 		for (var i=0; i<colCnt; i++) {
@@ -542,7 +544,7 @@ function AgendaView(element, calendar, viewName) {
 				rect.top = top;
 				rect.height = bottom - top;
 				slotBind(
-					renderOverlay(rect, slotContent)
+					renderOverlay(rect, slotContent, isAvail)
 				);
 			}
 			addDays(dayStart, 1);
@@ -713,11 +715,23 @@ function AgendaView(element, calendar, viewName) {
 		}
 	}
 	
+	function renderAvailability(startDate, endDate, allDay) { 
+		/*
+		 * As above but for availability overlays
+		 */
+		if (allDay) {
+			if (opt('allDaySlot')) {
+				renderDayOverlay(startDate, addDays(cloneDate(endDate), 1), true, true);
+			}
+		}else{
+			renderSlotSelection(startDate, endDate, true);
+		}
+	}
 	
-	function renderSlotSelection(startDate, endDate) {
+	function renderSlotSelection(startDate, endDate, isAvail) {
 		var helperOption = opt('selectHelper');
 		coordinateGrid.build();
-		if (helperOption) {
+		if (! isAvail && helperOption) {
 			var col = dayDiff(startDate, t.visStart) * dis + dit;
 			if (col >= 0 && col < colCnt) { // only works when times are on same day
 				var rect = coordinateGrid.rect(0, col, 0, col, slotContent); // only for horizontal coords
@@ -761,7 +775,7 @@ function AgendaView(element, calendar, viewName) {
 				}
 			}
 		}else{
-			renderSlotOverlay(startDate, endDate);
+			renderSlotOverlay(startDate, endDate, isAvail);
 		}
 	}
 	

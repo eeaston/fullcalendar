@@ -17,6 +17,12 @@
 	filter: alpha(opacity=30); /* for IE */
 	}
 	
+.fc-cell-overlay-avail { /* availability overlays */
+	background: red;
+	opacity: .3;
+	filter: alpha(opacity=30); /* for IE */
+	}
+	
 
 
 /* Buttons
