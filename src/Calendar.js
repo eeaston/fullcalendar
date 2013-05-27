@@ -373,6 +373,9 @@ function Calendar(element, options, eventSources, resourceSources, availSources)
 				events.push(_events[i]);
 			}
 		}
+		if (currentView.reportAvailability && availEvents.length > 0) {
+			currentView.reportAvailability(availEvents);
+		}
 		rerenderEvents();
 	}
 
@@ -395,7 +398,7 @@ function Calendar(element, options, eventSources, resourceSources, availSources)
 				currentView.clearAvailEvents();
 			}
 			if (currentView.renderAvailEvents) {
-				currentView.renderAvailEvents(availEvents);
+				currentView.renderAvailEvents();
 			}
 			
 			currentView.eventsDirty = false;

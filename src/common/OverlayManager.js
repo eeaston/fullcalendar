@@ -9,36 +9,49 @@ function OverlayManager() {
 	
 	
 	// locals
-	var usedOverlays = [];
-	var unusedOverlays = [];
+	var usedOverlays = {
+		'selection': [],
+		'avail': []
+	};
+	var unusedOverlays = {
+		'selection': [],
+		'avail': []
+	};
+	
+	var overlayGenerator = {
+		'selection': function() {
+			return $("<div class='fc-cell-overlay' style='position:absolute;z-index:3'/>");
+		},
+		'avail' : function() {
+			return $("<div class='fc-cell-overlay-avail' style='position:absolute;z-index:3'/>");
+		}
+	};
 	
 	
-	function renderOverlay(rect, parent, isAvail) {
-		var e = unusedOverlays.shift();
+	function renderOverlay(rect, parent, overlayType) {
+		/*
+		 * overlayType: defaults to 'selection' for regular selection overlays
+		 */
+		overlayType = overlayType ? overlayType : 'selection';
+		var e = unusedOverlays[overlayType].shift();
 		if (!e) {
-			if (isAvail) {
-				// Availability overlays
-				e = $("<div class='fc-cell-overlay-avail' style='position:absolute;z-index:3'/>");
-			}
-			else {
-				// Selection overlays
-				e = $("<div class='fc-cell-overlay' style='position:absolute;z-index:3'/>");
-			}
+			e = overlayGenerator[overlayType]();
 		}
 		if (e[0].parentNode != parent[0]) {
 			e.appendTo(parent);
 		}
-		usedOverlays.push(e.css(rect).show());
+		usedOverlays[overlayType].push(e.css(rect).show());
 		return e;
-	}
+	};
 	
 
-	function clearOverlays() {
+	function clearOverlays(overlayType) {
+		overlayType = overlayType ? overlayType : 'selection';
 		var e;
-		while (e = usedOverlays.shift()) {
-			unusedOverlays.push(e.hide().unbind());
+		while (e = usedOverlays[overlayType].shift()) {
+			unusedOverlays[overlayType].push(e.hide().unbind());
 		}
-	}
+	};
 
 
 }
