@@ -685,6 +685,7 @@ function AgendaView(element, calendar, viewName) {
 		return addMinutes(day, mins);
 	}
 	
+	
 	function allDayBounds() {
 		return {
 			left: axisWidth,

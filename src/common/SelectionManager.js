@@ -92,6 +92,8 @@ function SelectionManager() {
 		var viewName = getViewName();
 		if (ev.which == 1 && opt('selectable')) { // which==1 means left mouse button
 			unselect(ev);
+			// Disable availability hover listener
+			t.disableAvailHover();
 			var _mousedownElement = this;
 			var dates;
 			hoverListener.start(function(cell, origCell) { // TODO: maybe put cellDate/cellIsAllDay info in cell
@@ -118,6 +120,8 @@ function SelectionManager() {
 					}
 					reportSelection(dates[0], (viewName == 'resourceDay' ? addMinutes(dates[1], opt('slotMinutes')) : dates[1]), (viewName == 'resourceDay' ? false : true), ev, resources[row]);
 				}
+				// Re-enable availability hover listener
+				t.enableAvailHover();
 			});
 		}
 	}

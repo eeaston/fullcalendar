@@ -27,9 +27,9 @@ function Calendar(element, options, eventSources, resourceSources, availSources)
 	t.formatDates = function(format, date1, date2) { return formatDates(format, date1, date2, options) };
 	t.getDate = getDate;
 	t.getView = getView;
+	t.getElement = getElement;
 	t.option = option;
 	t.trigger = trigger;
-
 
 	// imports
 	EventManager.call(t, options, eventSources);
@@ -62,6 +62,7 @@ function Calendar(element, options, eventSources, resourceSources, availSources)
 	var events = [];
 	var availEvents = [];
 	var _dragElement;
+	var triggerIntercepts = {};
 
 
 
@@ -500,6 +501,13 @@ function Calendar(element, options, eventSources, resourceSources, availSources)
 	function getView() {
 		return currentView;
 	}
+	
+	function getElement() {
+		/*
+		 * Returns the calendar DOM element
+		 */
+		return _element;
+	}
 
 
 	function option(name, value) {
@@ -511,15 +519,28 @@ function Calendar(element, options, eventSources, resourceSources, availSources)
 			updateSize();
 		}
 	}
-
-
+	
 	function trigger(name, thisObj) {
+		/*
+		 * Trigger a callback and any registered events 
+		 * name: callback/js-event name
+		 * thisObj: 'this' object context
+		 */
+		var args = Array.prototype.slice.call(arguments, 2);
+		thisObj  = thisObj ? thisObj : _element;
+		
+		// Option-specified callback
 		if (options[name]) {
-			return options[name].apply(
-				thisObj || _element,
-				Array.prototype.slice.call(arguments, 2)
-			);
+			return options[name].apply(thisObj, args);
 		}
+		/* This mechanism should support regular javascript events, it helps 
+		   simplify callback-spaghetti :) 
+		   Here we trigger an event on the calendar DOM object. 
+		   Because 'this' in the context of any registered event handlers will 
+		   always be the calendar DOM element, we pass the requested 'this' 
+		   object as the first argument.
+		*/
+		element.trigger(name, [thisObj].concat(args));
 	}
 
 

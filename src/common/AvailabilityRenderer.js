@@ -14,6 +14,7 @@ function AvailabilityRenderer() {
 	// imports
 	var renderAvailability = t.renderAvailability;
 	var renderSelection = t.renderSelection;
+	var clearSelection = t.clearSelection;
 	var clearOverlays = t.clearOverlays;
 	var getMaxMinute = t.getMaxMinute;
 	var getMinMinute = t.getMinMinute;
@@ -22,9 +23,20 @@ function AvailabilityRenderer() {
 	// locals
 	var availEvents = []
 	var unavailEvents = []
-	var currentMouseOver; 
+	var currentSlot = null; 
 	
 	enableAvailHover();
+	
+	// Watch for other calendar events to toggle the hover watch
+	$(t.calendar.getElement()).on('eventDragStart eventResizeStart eventMouseover', 
+						    	  disableAvailHover);
+	$(t.calendar.getElement()).on('eventDragStop eventResizeStop eventMouseout', 
+								  handleDragStop);
+	
+	// Watch for day clicking so we can check if it's in the currently hilighted
+	// available slot and raise a new trigger.
+	$(t.calendar.getElement()).on('dayClick', handleDayClick);
+	
 	
 	/* Data handling
 	----------------------------------------------------------------------------*/
@@ -41,10 +53,10 @@ function AvailabilityRenderer() {
 	    });
 	    
 	    // Calculate the gaps between events that will be drawn as 'bad' areas
-	    unavailEvents = _getUnavailEvents(availEvents);
+	    unavailEvents = getUnavailEvents(availEvents);
 	}
 	
-	function _getUnavailEvents(events) {
+	function getUnavailEvents(events) {
 		/*
 		 * Turn an array of 'i am available from a to b' events into an array
 		 * of 'i am not available from c to d' events, as these are what will
@@ -177,31 +189,42 @@ function AvailabilityRenderer() {
 	    return candidates.length === 0 ? null : candidates[0];
 	};
 		
-	/* Mouse Events
+	/* Control Enable and Disable
 	----------------------------------------------------------------------------*/
-	
-	function _enterCalArea() {
-		$(this).mousemove(handleMouseMove);
-	};
-	
-	function _exitCalArea() {
-		$(this).unbind('mousemove', handleMouseMove);
-		clearOverlays();
-	};
 	
 	function enableAvailHover() {
 		/*
 		 * Enable mouse move detection within the view to draw the selection preview
 		 */
-		t.element.mouseenter(_enterCalArea).mouseleave(_exitCalArea);
+		console.log("Enabling avail hover");
+		t.element.mouseenter(handleEnterCalArea).mouseleave(handleExitCalArea);
 	}
 	
 	function disableAvailHover() {
 		/*
 		 * Disable mouse move detection 
 		 */
-		t.element.unbind('mouseenter',_enterCalArea).unbind('mouseleave', exitCalArea);
+		console.log("Disabling avail hover");
+		clearSelection();
+		currentSlot = null;
+		t.element.unbind('mousemove',handleMouseMove)
+		 .unbind('mouseenter', handleEnterCalArea)
+		 .unbind('mouseleave', handleExitCalArea);
 	}
+	
+	
+	/* Mouse Events
+	----------------------------------------------------------------------------*/
+	
+	function handleEnterCalArea() {
+		$(this).mousemove(handleMouseMove);
+	};
+	
+	function handleExitCalArea() {
+		$(this).unbind('mousemove', handleMouseMove);
+		clearSelection();
+		currentSlot = null;
+	};
 	
 	function handleMouseMove(evt) {
 		/*
@@ -209,10 +232,29 @@ function AvailabilityRenderer() {
 		 * the preview overlays
 		 */
 		var date = t.positionTime(evt.pageX, evt.pageY);
-		clearOverlays('selection');
-		var slot = findSlot(date);
-		if (slot !== null) {
-			renderSelection(slot.start, slot.end);
+		clearSelection();
+		currentSlot = findSlot(date);
+		if (currentSlot !== null) {
+			renderSelection(currentSlot.start, currentSlot.end);
+		}
+	};
+	
+	function handleDragStop() {
+		/*
+		 * Called when event drag stops. Re-enable hover watching.
+		 */
+		enableAvailHover();
+		$(t.element).trigger('mouseenter');
+	};
+	
+	function handleDayClick(date, allDay, jsEvent, view) {
+		/*
+		 * Called first when the user clicks on a date. If we're within a 
+		 * currently available slot, raise a new trigger with the slot 
+		 * data
+		 */
+		if (currentSlot !== null) {
+			t.calendar.trigger('availClick', t.element, currentSlot);
 		}
 	};
 	
