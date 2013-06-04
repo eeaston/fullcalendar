@@ -196,7 +196,7 @@ function AvailabilityRenderer() {
 		/*
 		 * Enable mouse move detection within the view to draw the selection preview
 		 */
-		console.log("Enabling avail hover");
+		//console.log("Enabling avail hover");
 		t.element.mouseenter(handleEnterCalArea).mouseleave(handleExitCalArea);
 	}
 	
@@ -204,7 +204,7 @@ function AvailabilityRenderer() {
 		/*
 		 * Disable mouse move detection 
 		 */
-		console.log("Disabling avail hover");
+		//console.log("Disabling avail hover");
 		clearSelection();
 		currentSlot = null;
 		t.element.unbind('mousemove',handleMouseMove)
