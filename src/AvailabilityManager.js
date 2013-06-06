@@ -9,10 +9,12 @@ function AvailabilityManager(options, _availSources) {
 	
 	// exports
 	t.addAvailabilitySource = addAvailabilitySource;
+	t.removeAvailabilitySource = removeAvailabilitySource;
 	t.isAvailEvent = isAvailEvent;
 	
 	// imports
 	var addEventSource = t.addEventSource;
+	var removeEventSource = t.removeEventSource;
 	var getView = t.getView;
 	
 	for (var i=0; i<_availSources.length; i++) {
@@ -24,25 +26,34 @@ function AvailabilityManager(options, _availSources) {
 	
 
 	function addAvailabilitySource(source) {
-		source = _addAvailabilitySource(source);
+		source = _getAvailabilitySource(source);
 		if (source) {
 			addEventSource(source);
 		}
 	}
 	
+	function removeAvailabilitySource(source) {
+		source = _getAvailabilitySource(source);
+		if (source) {
+			removeEventSource(source);
+		}
+		getView().clearAvailEvents();
+	};
+	
 	function _transformEventData(evt) {
 		/*
-		 * post-process availability events
+		 * post-process availability events, we stick an empty title in
+		 * to keep the EventManager happy.
 		 */
 		return $.extend({title: ''}, evt);
-	}
+	};
 	
-	function _addAvailabilitySource(source) {
+	function _getAvailabilitySource(source) {
 		if ($.isFunction(source) || $.isArray(source)) {
-			source = { events: source };
+			source =  { events: source };
 		}
 		else if (typeof source == 'string') {
-			source = { url: source };
+			source =  { url: source };
 		}
 		if (typeof source == 'object') {
 			// Set flag for availability sources
